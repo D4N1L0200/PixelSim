@@ -28,16 +28,50 @@ class CellGrid:
     def get_cell(self, x, y):
         return self.grid[y][x]
 
+    def push_cell(self, new_cell):
+        self.grid[new_cell.y][new_cell.x] = new_cell
+
+    def push_cells(self, cell_list, new_cell):
+        pass
+        # TODO
+
+    def get_neighbours(self, cell, diagonal=True):
+        neighbours = []
+        if diagonal:
+            # left to right, top to bottom
+            for x in range(cell.x - 1, cell.x + 2):
+                for y in range(cell.y - 1, cell.y + 2):
+                    if x != cell.x or y != cell.y:
+                        neighbours.append(self.get_cell(x, y))
+        else:
+            # left, right, top, bottom
+            for x in range(cell.x - 1, cell.x + 2):
+                if x != cell.x:
+                    neighbours.append(self.get_cell(x, cell.y))
+            for y in range(cell.y - 1, cell.y + 2):
+                if y != cell.y:
+                    neighbours.append(self.get_cell(cell.x, y))
+        return neighbours
+
 
 class Simulation:
     def __init__(self):
         self.cellGrid = CellGrid(10, 10)
         self.running = False
-        # self.updateBuffer = []  # Update list
+
+    def tick(self):
+        # Update the grid
+        for row in self.cellGrid.grid:
+            for cell in row:
+                if cell.active:
+                    cell.tick(self.cellGrid)
 
     def test(self):
+        # rprint(self.cellGrid.grid)
+        self.cellGrid.push_cell(cellT.Expandable(5, 5))
         rprint(self.cellGrid.grid)
-        rprint(self.cellGrid.get_cell(4, 7))
+        self.tick()
+        rprint(self.cellGrid.grid)
 
 
 if __name__ == "__main__":
