@@ -1,0 +1,17 @@
+Previous_Buffer (Screen class -> Cell grid) = Previous state of cells
+Next_Buffer (Screen class -> Update list) = Buffer to hold cells that will update next iteration
+Out_Buffer (Screen class -> Cell grid) = Current state of cells to be displayed
+
+Basic loop:
+    For each cell in the Previous_Buffer:
+        If cell is active:
+            Check actions with neighboring cells
+            Add updates to neighboring cells to Next_Buffer
+            Update current cell to Out_Buffer
+    Display Out_Buffer
+
+[
+[00, 10, 20, 30]
+[01, 11, 21, 31]
+[02, 12, 22, 32]
+]
