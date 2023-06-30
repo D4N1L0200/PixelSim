@@ -15,3 +15,45 @@ Basic loop:
 [01, 11, 21, 31]
 [02, 12, 22, 32]
 ]
+
+element Sand {
+    @ => _
+    _    @
+}
+
+
+element Sand {
+	colour "#ffcc00"
+	emissive "#ffa34d"
+	category "Sandbox"
+	prop state SOLID
+	prop temperature ROOM
+	prop states () => ({
+		[HOT]: Glass,
+	})
+
+	mimic(Temperature)
+	mimic(Powder)
+}
+
+
+
+element Powder  {
+	prop state SOLID
+	//category "Rulesets"
+	
+	given D (element) => element.state > SOLID && element.state !== EFFECT
+	select D (atom) => atom
+	change D (selected) => selected
+	@ => D
+	D    @
+	
+	given S (element) => element.state > SOLID && element.state !== EFFECT
+	select S (atom) => atom
+	change S (selected) => selected
+	given F (element) => element.state > SOLID
+	any(xz.rotations) {
+		@S => S@
+		 F     .
+	}
+}
