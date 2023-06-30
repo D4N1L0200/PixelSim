@@ -174,6 +174,27 @@ class Cell:
                 elif area.id_at(-1, 0) == 0:
                     area.place(0, 0, 0)
                     area.place(-1, 0, 2)
+        # if area.id_at(0, 0) == 3:  # Left Water
+        #     if area.id_at(0, -1) == 0:  # Down
+        #         area.place(0, 0, 0)
+        #         area.place(0, -1, 3)
+        #     elif area.id_at(-1, 0) == 0:  #  Left Empty
+        #         area.place(0, 0, 0)
+        #         area.place(-1, 0, 3)
+        #     elif area.id_at(-1, 0) == -1:  #  Left Wall
+        #         area.place(0, 0, 4)
+        #     elif area.id_at(-1, 0) == 4:  #  Left Water
+        #         area.place(0, 0, 4)
+        #         area.place(-1, 0, 3)
+        # if area.id_at(0, 0) == 4:  # Right Water
+        #     if area.id_at(0, -1) == 0:  # Down
+        #         area.place(0, 0, 0)
+        #         area.place(0, -1, 4)
+        #     elif area.id_at(1, 0) == 0:  #  Right Empty
+        #         area.place(0, 0, 0)
+        #         area.place(1, 0, 4)
+        #     elif area.id_at(1, 0) == -1:  #  Right Wall
+        #         area.place(0, 0, 3)
         return area
 
 
