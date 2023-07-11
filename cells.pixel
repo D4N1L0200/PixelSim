@@ -1,0 +1,64 @@
+element None -1 {
+    color 255 0 0
+}
+
+element Empty 0 {
+    color 16 16 16
+}
+
+element Sand 1 {
+    color 255 204 0
+}
+
+element Water 2 {
+    color 0 0 255
+}
+
+#element Slime 3 {
+#}
+
+#element Lava 4 {
+#}
+
+#element Glass 5 {
+#}
+
+#element Sand {
+#	emissive "#ffa34d"
+#	category "Sandbox"
+#	prop state SOLID
+#	prop temperature ROOM
+#	prop states () => ({
+#		[HOT]: Glass,
+#	})
+#
+#	mimic(Temperature)
+#	mimic(Powder)
+#
+#    @ => _
+#    _    @
+#}
+#
+#
+#
+#element Powder  {
+#	prop state SOLID
+#	//category "Rulesets"
+#	
+#	given D (element) => element.state > SOLID && element.state !== EFFECT
+#	select D (atom) => atom
+#	change D (selected) => selected
+#	@ => D
+#	D    @
+#	
+#	given S (element) => element.state > SOLID && element.state !== EFFECT
+#	select S (atom) => atom
+#	change S (selected) => selected
+#	given F (element) => element.state > SOLID
+#	any(xz.rotations) {
+#		@S => S@
+#		 F     .
+#	}
+#}
+
+

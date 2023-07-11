@@ -1,20 +1,20 @@
-import time
+# import time
 
 import pygame
 
 from simulator import Simulation
 
-testing = False
-if testing:
-    width = 10
-    height = 10
-    cell_size = 50
-    padding = 0
-else:
-    width = 100
-    height = 100
-    cell_size = 5
-    padding = 0
+# testing = False
+# if testing:
+#     width = 10
+#     height = 10
+#     cell_size = 50
+#     padding = 0
+# else:
+width = 100
+height = 100
+cell_size = 5
+padding = 0
 sim = Simulation(width, height)
 
 pygame.init()
@@ -45,30 +45,16 @@ while running:
             running = False
 
     if pygame.mouse.get_pressed()[0]:  # Left Click
-        # sim.add_cell(3, get_mouse_pos())
-        sim.add_cell(1, get_mouse_pos())
+        sim.add_cell("Sand", get_mouse_pos())
     if pygame.mouse.get_pressed()[2]:  # Right Click
-        # sim.add_cell(4, get_mouse_pos())
-        sim.add_cell(2, get_mouse_pos())
+        sim.add_cell("Water", get_mouse_pos())
 
     window.fill(0)
     for iy, rowOfCells in enumerate(sim.grid):
         for ix, cell in enumerate(rowOfCells):
-            if cell.id == 0:
-                color = (16, 16, 16)
-            elif cell.id == 1:
-                color = (255, 255, 255)
-            elif cell.id == 2:
-                color = (0, 0, 255)
-            # elif cell.id == 3:
-            #     color = (0, 0, 200)
-            # elif cell.id == 4:
-            #     color = (100, 100, 200)
-            else:
-                color = (255, 0, 0)
             pygame.draw.rect(
                 window,
-                color,
+                cell.color,
                 (
                     ix * (cell_size + padding) + padding,
                     iy * (cell_size + padding) + padding,
@@ -77,9 +63,10 @@ while running:
                 ),
             )
     pygame.display.flip()
+    pygame.display.set_caption(f"PixelSim - FPS: {round(clock.get_fps(), 2)}")
     clock.tick(240)
-    if testing:
-        time.sleep(0.2)
+    # if testing:
+    #     time.sleep(0.2)
     sim.tick()
 
 pygame.quit()

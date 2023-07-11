@@ -2,17 +2,19 @@ import random
 import time
 
 from rich import print as rprint
+from line_parser import Parser
 
 
 class Simulation:
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.load_rules()
         self.grid = []
         for y in range(self.height):
             self.grid.append([])
             for x in range(self.width):
-                self.grid[y].append(Cell(0, x, y))
+                self.grid[y].append(Cell("Empty", x, y, self.rules["Empty"]))
 
     def update(self, area):
         for y in range(3):
@@ -23,14 +25,14 @@ class Simulation:
                 col = area.y - 1 + y
 
                 if 0 <= row < len(self.grid) and 0 <= col < len(self.grid[0]):
-                    self.add_cell(area.grid[y][x].id, (row, col))
+                    self.add_cell(area.grid[y][x].name, (row, col))
 
     def tick(self):
         areas = []
         for row in self.grid:
             for cell in row:
                 if cell.id != 0:
-                    area = Area(cell.x, cell.y, self.grid)
+                    area = Area(cell.x, cell.y, self.grid, self.rules)
                     updated_area = cell.tick(area)
                     if updated_area.changed:
                         areas.append(updated_area)
@@ -44,25 +46,35 @@ class Simulation:
                 choosen = random.choice(collision_idxs)
                 for coll_idx in collision_idxs:
                     if coll_idx != choosen:
-                        areas[coll_idx] = Area(-2, -2, [[]])
+                        areas[coll_idx] = Area(-2, -2, [[]], self.rules)
                 self.update(areas[choosen])
             else:
                 self.update(area)
 
-    def add_cell(self, id, xy):
+    def add_cell(self, name, xy):
         x, y = xy
         if x > len(self.grid[0]) - 1 or x < 0 or y > len(self.grid) - 1 or y < 0:
             return
-        self.grid[y][x] = Cell(id, x, y)
+        self.grid[y][x] = Cell(name, x, y, self.rules[name])
+
+    def load_rules(self):
+        parser = Parser("cells.pixel")
+        parser.load_file()
+        parser.clear_lines()
+        # rprint(parser.lines)
+        parser.parse_lines()
+        # rprint(parser.objects)
+        self.rules = parser.objects
 
 
 class Area:
-    def __init__(self, x, y, sim_grid):
+    def __init__(self, x, y, sim_grid, rules):
         self.x = x
         self.y = y
         self.changed = False
         self.old_grid = [[-1] * 3 for _ in range(3)]
         self.grid = [[-1] * 3 for _ in range(3)]
+        self.rules = rules
 
         # get neighbouring cells
         for i in range(-1, 2):
@@ -76,11 +88,19 @@ class Area:
     def id_at(self, x, y):
         cell = self.old_grid[(y * -1) + 1][x + 1]
         if cell == -1:
-            cell = Cell(-1, 0, 0)
+            return -1
         return cell.id
 
-    def place(self, x, y, id):
-        self.grid[(y * -1) + 1][x + 1] = Cell(id, self.x - x, self.y - y)
+    def name_at(self, x, y):
+        cell = self.old_grid[(y * -1) + 1][x + 1]
+        if cell == -1:
+            return "None"
+        return cell.name
+
+    def place(self, x, y, name):
+        self.grid[(y * -1) + 1][x + 1] = Cell(
+            name, self.x - x, self.y - y, self.rules[name]
+        )
         self.changed = True
 
     def valid_points(self):
@@ -106,10 +126,12 @@ class Area:
 
 
 class Cell:
-    def __init__(self, id, x, y):
-        self.id = id
+    def __init__(self, name, x, y, rules):
+        self.name = name
+        self.id = rules["id"]
         self.x = x
         self.y = y
+        self.color = rules["color"]
 
     def __repr__(self):
         return str(self.id)
@@ -118,8 +140,8 @@ class Cell:
         if area.id_at(0, 0) == 1:  # Sand
             # Down
             if area.id_at(0, -1) == 0:
-                area.place(0, 0, 0)
-                area.place(0, -1, 1)
+                area.place(0, 0, "Empty")
+                area.place(0, -1, "Sand")
             if area.id_at(0, -1) == 1:
                 if random.randint(0, 1):  # Left Priority
                     # Diagonal Down Left
@@ -139,41 +161,44 @@ class Cell:
                     elif area.id_at(-1, -1) == 0:
                         area.place(0, 0, 0)
                         area.place(-1, -1, 1)
-            # Down Water
-            if area.id_at(0, -1) == 2:
-                area.place(0, 0, 2)
-                area.place(0, -1, 1)
-            # Diagonal Down Left Water
-            elif area.id_at(-1, -1) == 2:
-                area.place(0, 0, 2)
-                area.place(-1, -1, 1)
-            # Diagonal Down Right Water
-            elif area.id_at(1, -1) == 2:
-                area.place(0, 0, 2)
-                area.place(1, -1, 1)
-        if area.id_at(0, 0) == 2:  # Water
-            # Down
-            if area.id_at(0, -1) == 0:
-                area.place(0, 0, 0)
-                area.place(0, -1, 2)
-            elif random.randint(0, 1):  # Left Priority
-                #  Left
-                if area.id_at(-1, 0) == 0:
-                    area.place(0, 0, 0)
-                    area.place(-1, 0, 2)
-                #  Right
-                elif area.id_at(1, 0) == 0:
-                    area.place(0, 0, 0)
-                    area.place(1, 0, 2)
-            else:  # Right Priority
-                #  Right
-                if area.id_at(1, 0) == 0:
-                    area.place(0, 0, 0)
-                    area.place(1, 0, 2)
-                #  Left
-                elif area.id_at(-1, 0) == 0:
-                    area.place(0, 0, 0)
-                    area.place(-1, 0, 2)
+
+            # # Down Water
+            # if area.id_at(0, -1) == 2:
+            #     area.place(0, 0, 2)
+            #     area.place(0, -1, 1)
+            # # Diagonal Down Left Water
+            # elif area.id_at(-1, -1) == 2:
+            #     area.place(0, 0, 2)
+            #     area.place(-1, -1, 1)
+            # # Diagonal Down Right Water
+            # elif area.id_at(1, -1) == 2:
+            #     area.place(0, 0, 2)
+            #     area.place(1, -1, 1)
+
+        # if area.id_at(0, 0) == 2:  # Water
+        #     # Down
+        #     if area.id_at(0, -1) == 0:
+        #         area.place(0, 0, 0)
+        #         area.place(0, -1, 2)
+        #     elif random.randint(0, 1):  # Left Priority
+        #         #  Left
+        #         if area.id_at(-1, 0) == 0:
+        #             area.place(0, 0, 0)
+        #             area.place(-1, 0, 2)
+        #         #  Right
+        #         elif area.id_at(1, 0) == 0:
+        #             area.place(0, 0, 0)
+        #             area.place(1, 0, 2)
+        #     else:  # Right Priority
+        #         #  Right
+        #         if area.id_at(1, 0) == 0:
+        #             area.place(0, 0, 0)
+        #             area.place(1, 0, 2)
+        #         #  Left
+        #         elif area.id_at(-1, 0) == 0:
+        #             area.place(0, 0, 0)
+        #             area.place(-1, 0, 2)
+
         # if area.id_at(0, 0) == 3:  # Left Water
         #     if area.id_at(0, -1) == 0:  # Down
         #         area.place(0, 0, 0)
