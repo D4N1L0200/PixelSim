@@ -8,20 +8,127 @@ element Empty 0 {
 
 element Sand 1 {
     color 255 204 0
+
+    rule {
+        ifidat 0 0 -1
+        change 0 0 0
+        change 1 0 -1
+        done 0 0 0
+    }
+
+    rule x {
+        ifidat 0 1 -1
+        ifidat 1 0 -1
+        change 0 0 0
+        change 1 1 -1
+        done 0 0 0
+    }
+
+    rule {
+        ifidat 2 0 -1
+        change 2 0 0
+        change 1 0 -1
+        done 0 0 0
+    }
 }
 
 element Water 2 {
     color 0 0 255
+
+    rule {
+        ifidat 0 0 -1
+        change 0 0 0
+        change 2 0 -1
+        done 0 0 0
+    }
+
+    rule x {
+        ifidat 0 1 0
+        change 0 0 0
+        change 2 1 0
+        done 0 0 0
+    }
+
+#    rule {
+#        @ => _
+#        _    @
+#    }
+#
+#    rule x {
+#        @_  => _@
+#    }
 }
 
 #element Slime 3 {
 #}
 
-#element Lava 4 {
-#}
+element Lava 4 {
+    color 232 46 9
 
-#element Glass 5 {
-#}
+    rule y {
+        ifidat 1 0 1
+        change 5 0 1
+        done 0 0 0
+    }
+
+    rule x {
+        ifidat 1 1 0
+        change 5 1 0
+        done 0 0 0
+    }
+
+    rule {
+        ifidat 0 0 -1
+        change 0 0 0
+        change 4 0 -1
+        done 0 0 0
+    }
+
+    rule x {
+        ifidat 0 1 0
+        change 0 0 0
+        change 4 1 0
+        done 0 0 0
+    }
+
+    rule {
+        ifidat 0 0 1
+        change 6 0 1
+        done 0 0 0
+    }
+}
+
+element Glass 5 {
+    color 255 255 255
+}
+
+element Ash 6 {
+    color 25 25 25
+
+    rule x {
+        ifidat 0 1 1
+        change 6 1 1
+        change 0 0 0
+        done 0 0 0
+    }
+
+    rule {
+        ifidat -1 0 1
+        change 0 0 0
+        done 0 0 0
+    }
+}
+
+element Diamond 7 {
+    color 116 202 212
+
+    rule {
+        ifidat 0 0 -1
+        change 0 0 0
+        change 7 0 -1
+        done 0 0 0
+    }
+}
 
 #element Sand {
 #	emissive "#ffa34d"
@@ -60,5 +167,3 @@ element Water 2 {
 #		 F     .
 #	}
 #}
-
-

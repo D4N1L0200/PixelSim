@@ -15,6 +15,8 @@ class Simulation:
             self.grid.append([])
             for x in range(self.width):
                 self.grid[y].append(Cell("Empty", x, y, self.rules["Empty"]))
+                # self.grid[y].append(Cell("Sand", x, y, self.rules["Sand"]))
+                # self.grid[y].append(Cell("Water", x, y, self.rules["Water"]))
 
     def update(self, area):
         for y in range(3):
@@ -85,7 +87,8 @@ class Area:
                 if 0 <= new_row < len(sim_grid) and 0 <= new_col < len(sim_grid[0]):
                     self.old_grid[i + 1][j + 1] = sim_grid[new_row][new_col]
 
-    def id_at(self, x, y):
+    def id_at(self, xy):
+        x, y = xy
         cell = self.old_grid[(y * -1) + 1][x + 1]
         if cell == -1:
             return -1
@@ -97,7 +100,8 @@ class Area:
             return "None"
         return cell.name
 
-    def place(self, x, y, name):
+    def place(self, xy, name):
+        x, y = xy
         self.grid[(y * -1) + 1][x + 1] = Cell(
             name, self.x - x, self.y - y, self.rules[name]
         )
@@ -132,94 +136,68 @@ class Cell:
         self.x = x
         self.y = y
         self.color = rules["color"]
+        self.rules = rules["rules"]
 
     def __repr__(self):
         return str(self.id)
 
+    def invert_rule(self, rule, axis):
+        for i in range(len(rule)):
+            if "cords" in rule[i]:
+                match axis:
+                    case "x":
+                        rule[i]["cords"] = (
+                            rule[i]["cords"][0] * -1,
+                            rule[i]["cords"][1],
+                        )
+                    case "y":
+                        rule[i]["cords"] = (
+                            rule[i]["cords"][0],
+                            rule[i]["cords"][1] * -1,
+                        )
+                    case _:
+                        raise ValueError(f"Unknown axis '{axis}'")
+        return rule
+
+    def run_rule(self, rule, area):
+        for command in rule:
+            match command["type"]:
+                case "ifidat":
+                    if area.id_at(command["cords"]) != command["id"]:
+                        return area, False
+                case "change":
+                    match command["id"]:
+                        case 0:
+                            name = "Empty"
+                        case 1:
+                            name = "Sand"
+                        case 2:
+                            name = "Water"
+                        case 4:
+                            name = "Lava"
+                        case 5:
+                            name = "Glass"
+                        case 6:
+                            name = "Ash"
+                        case 7:
+                            name = "Diamond"
+                    area.place(command["cords"], name)
+                case "symmetry":
+                    if random.randint(0, 1):
+                        inverted = self.invert_rule(rule[1:], command["axis"])
+                        area, _ = self.run_rule(inverted, area)
+                        return area, True
+                case "done":
+                    return area, True
+                case _:
+                    raise ValueError(f"Unknown command '{command['type']}'")
+
     def tick(self, area):
-        if area.id_at(0, 0) == 1:  # Sand
-            # Down
-            if area.id_at(0, -1) == 0:
-                area.place(0, 0, "Empty")
-                area.place(0, -1, "Sand")
-            if area.id_at(0, -1) == 1:
-                if random.randint(0, 1):  # Left Priority
-                    # Diagonal Down Left
-                    if area.id_at(-1, -1) == 0:
-                        area.place(0, 0, 0)
-                        area.place(-1, -1, 1)
-                    # Diagonal Down Right
-                    elif area.id_at(1, -1) == 0:
-                        area.place(0, 0, 0)
-                        area.place(1, -1, 1)
-                else:  # Right Priority
-                    # Diagonal Down Right
-                    if area.id_at(1, -1) == 0:
-                        area.place(0, 0, 0)
-                        area.place(1, -1, 1)
-                    # Diagonal Down Left
-                    elif area.id_at(-1, -1) == 0:
-                        area.place(0, 0, 0)
-                        area.place(-1, -1, 1)
-
-            # # Down Water
-            # if area.id_at(0, -1) == 2:
-            #     area.place(0, 0, 2)
-            #     area.place(0, -1, 1)
-            # # Diagonal Down Left Water
-            # elif area.id_at(-1, -1) == 2:
-            #     area.place(0, 0, 2)
-            #     area.place(-1, -1, 1)
-            # # Diagonal Down Right Water
-            # elif area.id_at(1, -1) == 2:
-            #     area.place(0, 0, 2)
-            #     area.place(1, -1, 1)
-
-        # if area.id_at(0, 0) == 2:  # Water
-        #     # Down
-        #     if area.id_at(0, -1) == 0:
-        #         area.place(0, 0, 0)
-        #         area.place(0, -1, 2)
-        #     elif random.randint(0, 1):  # Left Priority
-        #         #  Left
-        #         if area.id_at(-1, 0) == 0:
-        #             area.place(0, 0, 0)
-        #             area.place(-1, 0, 2)
-        #         #  Right
-        #         elif area.id_at(1, 0) == 0:
-        #             area.place(0, 0, 0)
-        #             area.place(1, 0, 2)
-        #     else:  # Right Priority
-        #         #  Right
-        #         if area.id_at(1, 0) == 0:
-        #             area.place(0, 0, 0)
-        #             area.place(1, 0, 2)
-        #         #  Left
-        #         elif area.id_at(-1, 0) == 0:
-        #             area.place(0, 0, 0)
-        #             area.place(-1, 0, 2)
-
-        # if area.id_at(0, 0) == 3:  # Left Water
-        #     if area.id_at(0, -1) == 0:  # Down
-        #         area.place(0, 0, 0)
-        #         area.place(0, -1, 3)
-        #     elif area.id_at(-1, 0) == 0:  #  Left Empty
-        #         area.place(0, 0, 0)
-        #         area.place(-1, 0, 3)
-        #     elif area.id_at(-1, 0) == -1:  #  Left Wall
-        #         area.place(0, 0, 4)
-        #     elif area.id_at(-1, 0) == 4:  #  Left Water
-        #         area.place(0, 0, 4)
-        #         area.place(-1, 0, 3)
-        # if area.id_at(0, 0) == 4:  # Right Water
-        #     if area.id_at(0, -1) == 0:  # Down
-        #         area.place(0, 0, 0)
-        #         area.place(0, -1, 4)
-        #     elif area.id_at(1, 0) == 0:  #  Right Empty
-        #         area.place(0, 0, 0)
-        #         area.place(1, 0, 4)
-        #     elif area.id_at(1, 0) == -1:  #  Right Wall
-        #         area.place(0, 0, 3)
+        done = False
+        for rule in self.rules:
+            if done:
+                break
+            area, done = self.run_rule(rule, area)
         return area
 
 

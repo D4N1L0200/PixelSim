@@ -1,3 +1,6 @@
+from rich import print as rprint
+
+
 class Parser:
     def __init__(self, file) -> None:
         self.file = file
@@ -13,24 +16,54 @@ class Parser:
             if line.startswith("#") or not line:
                 continue
             else:
-                out.append(line)
+                out.append(line.strip())
         self.lines = out
 
     def parse_lines(self) -> None:
         self.objects = {}
+        rule = []
+        in_rule = False
         indent = 0
         for line in self.lines:
             if "element" in line:
                 _, current_element, id, _ = line.split()
                 self.objects[current_element] = {}
                 self.objects[current_element]["id"] = int(id)
+                self.objects[current_element]["rules"] = []
                 indent += 1
-            if "color" in line:
+            elif "color" in line:
                 _, R, G, B = line.split()
                 self.objects[current_element]["color"] = (int(R), int(G), int(B))
-            if "}" in line:
+            elif "rule" in line:
+                if any(i in "xy" for i in line.split()):
+                    symmetry = line.split()[1]
+                    rule.append({"type": "symmetry", "axis": symmetry})
+                in_rule = True
+                indent += 1
+            elif "}" == line:
+                if in_rule:
+                    self.objects[current_element]["rules"].append(rule)
+                    rule = []
+                    in_rule = False
                 indent -= 1
-        # print(indent)
+            elif in_rule:
+                command, cell, x, y = line.split()
+                rule.append(
+                    {"type": command, "id": int(cell), "cords": (int(x), int(y))}
+                )
+            else:
+                rprint(f"Unknown line: '{line}'")
+        # print("Finishing indent:", indent)
+
+
+if __name__ == "__main__":
+    parser = Parser("cells.pixel")
+    parser.load_file()
+    # rprint(parser.lines)
+    parser.clear_lines()
+    # rprint(parser.lines)
+    parser.parse_lines()
+    rprint(parser.objects)
 
 
 # def tick(self, area):
